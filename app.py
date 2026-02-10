@@ -2,9 +2,13 @@ import streamlit as st
 import os
 import base64
 import random
+import requests 
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="The Geometry of Us", page_icon="💖", layout="wide")
+
+# --- GITHUB IMAGE SETTINGS ---
+GITHUB_BASE_URL = "https://raw.githubusercontent.com/chinmaya98/Novel_Story/main/"
 
 # --- INITIALIZE SESSION STATE ---
 if 'authenticated' not in st.session_state:
@@ -13,15 +17,22 @@ if 'page' not in st.session_state:
     st.session_state.page = "landing"
 if 'viewing_us_photos' not in st.session_state:
     st.session_state.viewing_us_photos = False
+if 'selected_category' not in st.session_state:
+    st.session_state.selected_category = None
 
 # --- HELPER: CACHED BASE64 IMAGES (SPEED OPTIMIZATION) ---
-@st.cache_data
+@st.cache_data(ttl=3600)
 def get_image_base64(path):
-    """Reads image once and stores in RAM to prevent slow loading."""
-    if os.path.exists(path):
-        with open(path, "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode()
-    return ""
+    """Fetches image from GitHub URL and converts to Base64."""
+    # Check if path is a full URL or a relative path
+    url = path if path.startswith("http") else f"{GITHUB_BASE_URL}{path}"
+    
+    try:
+        response = requests.get(url, timeout=1.5) # Aggressive timeout for speed
+        if response.status_code == 200:
+            return base64.b64encode(response.content).decode()
+    except: return None
+    return None
 
 # --- DYNAMIC STYLING ---
 def apply_custom_styles(img_filename):
@@ -56,19 +67,43 @@ GEMINI_LINK = "https://gemini.google.com/share/ef6f607ddf18"
 if st.session_state.page == "landing":
     apply_custom_styles("map.png")
     st.balloons()
-    st.markdown("<h1 style='font-family:\"Dancing Script\", cursive; font-size: 6rem; text-align: center;'>Happy Birthday, Abhi!</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='font-family:\"Dancing Script\", cursive; font-size: 6rem; text-align: center;'>Happy Birthday, Gautam!</h1>", unsafe_allow_html=True)
 
-    col1, col2, col3, col4 = st.columns(4)
-    with col1: st.metric("Days of Love", "2,922")
+    # 1. Create spacer columns to push the main content to the center
+    # The [1, 1, 1, 1, 1] creates 5 equal columns; we use the middle 3.
+    _, col1, col2, col3, _ = st.columns([1, 2, 2, 2, 1])
+    
+    # 2. Inject CSS to center the metric text inside the columns
+    st.markdown("""
+        <style>
+        [data-testid="stMetric"] {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        [data-testid="stMetricValue"] {
+            width: fit-content;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    with col1: st.metric("Years", "7+")
     with col2: st.metric("Continents", "2")
     with col3: st.metric("Cities Together", "12+")
-    with col4: st.metric("Shared Future", "1")
 
     st.write("---")
     _, heart_col, _ = st.columns([1,1,1])
     with heart_col:
         if st.button("❤️ Reveal a Reason", use_container_width=True):
-            reasons = ["Because you crossed an ocean, and I followed.", "Because you are my geography.", "Because you are the silent architect of my confidence."]
+            reasons = ["Because you crossed an ocean, and I followed.",  
+            "Because you know the exact brand of chocolates to bring me when I'm sick.",
+            "Because you taught me I don't need headphones to find peace.",
+            "Because you're the only routine I ever truly wanted to keep.",
+            "Because you are my geography—the map I use to navigate the world.",
+            "Because with you, I lived a life composed entirely of 'firsts'.",
+            "Because you make me feel like the absolute center of your universe.",
+            "Because you are the silent architect of my confidence."]
             st.session_state.current_reason = random.choice(reasons)
             st.snow()
     
@@ -78,36 +113,48 @@ if st.session_state.page == "landing":
     st.write("##")
     _, mid, _ = st.columns([1, 2, 1])
     with mid:
-        if st.button("📁 OPEN PHOTO SUB-FOLDERS", use_container_width=True):
+        if st.button("📁 MEMORY VAULT", use_container_width=True):
             st.session_state.page = "photo_categories"
             st.rerun()
         if st.button("🎁 UNLOCK THE STORYBOOK", use_container_width=True):
             st.session_state.page = "login"
             st.rerun()
-
-# --- PAGE 2: PUBLIC PHOTOS ---
+    
+# --- PAGE 2: PUBLIC PHOTOS (MEMORY VAULT) ---
 elif st.session_state.page == "photo_categories":
     apply_custom_styles("backcover.png")
     st.markdown("<h1 style='text-align:center;'>Memory Vault</h1>", unsafe_allow_html=True)
     
-    categories = {"Friends": "friends", "Places": "place", "Food": "food"}
+    if st.button("🔙 Back Home", key="vault_exit_btn"): 
+        st.session_state.page = "landing"
+        st.rerun()
+
+    categories = {"Friends": "friends", "Places": "place", "Food": "food", "You": "you"}
     cols = st.columns(len(categories))
+    
     for i, (name, prefix) in enumerate(categories.items()):
-        with cols[i]:
-            if st.button(name, use_container_width=True):
-                st.session_state.selected_category = prefix
+        if cols[i].button(name, key=f"nav_{prefix}", use_container_width=True):
+            st.session_state.selected_category = prefix
+            st.rerun()
 
     if st.session_state.selected_category:
-        folder, prefix = "gallery", st.session_state.selected_category
-        if os.path.exists(folder):
-            cat_photos = [f for f in os.listdir(folder) if f.startswith(prefix)]
-            grid_cols = st.columns(3)
-            for idx, photo in enumerate(cat_photos):
-                with grid_cols[idx % 3]:
-                    img_b64 = get_image_base64(os.path.join(folder, photo))
-                    st.markdown(f'<div class="photo-card"><img src="data:image/jpeg;base64,{img_b64}" style="width:100%; height:250px; object-fit:cover;"></div>', unsafe_allow_html=True)
+        pref = st.session_state.selected_category
+        st.write(f"### Showing: {pref.capitalize()}")
 
-    if st.button("🔙 Back Home"): st.session_state.page = "landing"; st.rerun()
+        photos = [f"{pref}_{i}.jpg" for i in range(1, 19)] 
+        
+        grid_cols = st.columns(3)
+        for idx, photo in enumerate(photos):
+            with grid_cols[idx % 3]:
+                # Fetching ONLY the active category images to save speed
+                img_b64 = get_image_base64(f"gallery/{photo}")
+                if img_b64:
+                    st.markdown(f'''
+                        <div class="photo-card">
+                            <img src="data:image/jpeg;base64,{img_b64}" 
+                                 style="width:100%; height:250px; object-fit:cover;">
+                        </div>
+                    ''', unsafe_allow_html=True)
 
 # --- PAGE 3: LOGIN ---
 elif st.session_state.page == "login":
@@ -117,9 +164,9 @@ elif st.session_state.page == "login":
     with col:
         with st.form("auth"):
             u = st.text_input("Username")
-            p = st.text_input("Secret Key (Tara2018)", type="password")
+            p = st.text_input("Secret Key", type="password")
             if st.form_submit_button("Access Vault"):
-                if u.lower() == "abhi" and p == "Tara2018":
+                if u.lower() == "Gautam" and p == "Potti2018":
                     st.session_state.authenticated = True
                     st.session_state.page = "gallery"
                     st.rerun()
@@ -127,33 +174,128 @@ elif st.session_state.page == "login":
     if st.button("Back"): st.session_state.page = "landing"; st.rerun()
 
 # --- PAGE 4: THE JOURNEY VAULT (PRIVATE) ---
-# --- PAGE 4: THE JOURNEY VAULT (PRIVATE) ---
 elif st.session_state.page == "gallery":
+    # 1. INITIALIZE INTERNAL PAGE STATES
     if not st.session_state.authenticated: 
-        st.session_state.page = "login"; st.rerun()
+        st.session_state.page = "login"
+        st.rerun()
     
-    apply_custom_styles("map.png")
-    st.markdown("<h1 style='text-align:center;'>📐 Our Journey Vault</h1>", unsafe_allow_html=True)
+    if 'viewing_letter' not in st.session_state:
+        st.session_state.viewing_letter = False
+        
+    if 'photo_index' not in st.session_state:
+        st.session_state.photo_index = 0
 
-    # --- SUB-PAGE: PRIVATE MOMENTS REEL ---
-    if st.session_state.get('viewing_us_photos', False):
+    apply_custom_styles("map.png")
+
+    # --- SUB-PAGE: THE CUTE LETTER FORMAT ---
+    # --- SUB-PAGE: THE CUTE LETTER FORMAT ---
+    if st.session_state.get('viewing_letter', False):
+        # 1. Back Button (Keep this OUTSIDE the HTML block)
+        if st.button("🔙 Back to Journey Vault", key="final_letter_back"): 
+            st.session_state.viewing_letter = False
+            st.rerun()
+
+        # 2. Inject CSS separately for better reliability
+        st.markdown("""
+            <style>
+            @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@400;700&display=swap');
+            
+            /* This targeting ensures we override Streamlit's default padding */
+            .main .block-container {
+                padding-top: 2rem !important;
+            }
+
+            .letter-box {
+                background-color: #fffdf5 !important;
+                padding: 50px !important;
+                border-radius: 8px !important;
+                border: 1px solid #e0e0e0 !important;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+                max-width: 800px;
+                margin: auto;
+                color: #2c3e50 !important;
+                font-family: 'Playfair Display', serif !important;
+                line-height: 1.8 !important;
+            }
+            
+            .letter-box h1, .letter-box h2 {
+                font-family: 'Dancing Script', cursive !important;
+                color: #FF6B6B !important;
+                text-shadow: none !important; /* Removes the global shadow for the letter */
+            }
+            
+            .letter-box p {
+                color: #2c3e50 !important;
+                text-shadow: none !important;
+                margin-bottom: 20px !important;
+                font-size: 1.1rem !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
+        # 3. Create the Letter as a single clean string
+        # IMPORTANT: We do NOT use an f-string here to avoid brace errors
+        st.markdown(r"""
+        <div class="letter-box">
+            <p style="text-align: right; font-weight: bold; color: #2c3e50;">January 3, 2026</p>
+            <h1 style="text-align: center; color: #FF6B6B;">A Letter to the Man Who Became My Rhythm</h1>
+            <h2 style="color: #FF6B6B;">Gautam,</h2>
+            <p style="color: #2c3e50;">I am sitting here with my coffee, watching the light change, and for the first time in eight years, I am trying to imagine a world where you aren’t my first thought. It’s been 2,922 days since that bonfire in the hills, and somehow, you’ve managed to become the very air I breathe without me even noticing.</p>
+            <p style="color: #2c3e50;">I wanted to tell you this today, but the words always get stuck. I want to tell you that I don’t just "value" our friendship—I am built out of it.</p>
+            <p style="color: #2c3e50;">Every version of Tara that exists today was crafted alongside you. Tara who isn’t afraid of the deep water? You did that. The Tara who moved across the globe with two suitcases and a heart full of fear? She only did it because she knew you were on the other side of that flight.</p>
+            <p style="color: #2c3e50;">I’ve spent so long worrying about the "competition"—feeling like I was the third wheel between you and Siri, or wondering if I was just the girl who fills the gaps. But looking back at the way you cared for me during my worst days... I realize now that the only person I was ever in competition with was my own fear.</p>
+            <p style="color: #2c3e50;"><strong>But here is the truth that terrifies me:</strong></p>
+            <p style="color: #2c3e50;">We call this "friendship," and we wear that word like a safety vest. But what do I do when my "best friend" is also my entire routine? What do I do when my inspiration to wake up, to work, to struggle through this new country, is tied to a man I’m supposed to eventually "move on" from?</p>
+            <p style="color: #2c3e50;">I’m scared, Abhi. I’m scared that by staying "just friends," I am agreeing to a future where one day, I won't be the one cleaning up after your party.</p>
+            <p style="color: #2c3e50;">I can be your supporter. I can be your rock. I can be the person who knows your coffee order and your mother’s favorite cake by heart. But deep down, I don't know how to rewrite my story without you as the lead character.</p>
+            <p style="color: #2c3e50;">Thank you for being my constant in a world of chaos. Even if I don't know where we are going, I’m glad it was you who taught me how to walk through the mist.</p>
+            <div style="text-align: right; color: #FF6B6B; font-weight: bold; font-size: 1.5rem; margin-top: 30px;">
+                Always yours, in every way that matters,<br>
+                Potti
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.snow()
+
+    # --- SUB-PAGE: PRIVATE MOMENTS REEL (18 PHOTOS) ---
+    elif st.session_state.get('viewing_us_photos', False):
         st.markdown("<h1 style='text-align:center;'>❤️ Our Private Moments</h1>", unsafe_allow_html=True)
-        if st.button("🔙 Back to Journey Phases"): 
-            st.session_state.viewing_us_photos = False; st.rerun()
+        if st.button("🔙 Back to Journey Vault"): 
+            st.session_state.viewing_us_photos = False
+            st.rerun()
         
         st.write("---")
-        folder = "gallery"
-        if os.path.exists(folder):
-            us_photos = [f for f in os.listdir(folder) if f.startswith("us_")]
-            if us_photos:
-                grid_cols = st.columns(3)
-                for idx, photo in enumerate(us_photos):
-                    with grid_cols[idx % 3]:
-                        img_b64 = get_image_base64(os.path.join(folder, photo))
-                        st.markdown(f'<div class="photo-card"><img src="data:image/jpeg;base64,{img_b64}" style="width:100%; height:250px; object-fit:cover;"></div>', unsafe_allow_html=True)
-    
-    # --- MAIN VIEW: ALIGNED PHASE CARDS ---
+        us_photos = [f"us_{i}.jpg" for i in range(1, 19)] # Automated loop
+        curr_idx = st.session_state.photo_index
+
+        # Slideshow Navigation
+        prev_col, img_display_col, next_col = st.columns([1, 4, 1])
+        with prev_col:
+            st.write("##")
+            if st.button("⬅️ Prev", use_container_width=True):
+                st.session_state.photo_index = (curr_idx - 1) % len(us_photos)
+                st.rerun()
+        with img_display_col:
+            img_b64 = get_image_base64(f"gallery/{us_photos[curr_idx]}")
+            if img_b64:
+                st.markdown(f'''
+                    <div style="text-align:center; border:10px solid white; border-radius:20px; background:white; padding:15px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+                        <img src="data:image/jpeg;base64,{img_b64}" style="max-width:100%; max-height:500px; border-radius:10px;">
+                        <p style="color:#2c3e50; margin-top:10px; font-weight:bold;">Memory {curr_idx + 1} of 18</p>
+                    </div>
+                ''', unsafe_allow_html=True)
+        with next_col:
+            st.write("##")
+            if st.button("Next ➡️", use_container_width=True):
+                st.session_state.photo_index = (curr_idx + 1) % len(us_photos)
+                st.rerun()
+
+    # --- MAIN VIEW: PHASE CARDS + VAULT BUTTON ---
     else:
+        st.markdown("<h1 style='text-align:center;'>📐 Our Journey Vault</h1>", unsafe_allow_html=True)
+        
+        # CORRECTED DICTIONARY SYNTAX (Single Braces)
         phase_links = {
             "Phase I": "https://gemini.google.com/share/5e0867acc937",
             "Phase II": "https://gemini.google.com/share/c87b69424443",
@@ -162,12 +304,10 @@ elif st.session_state.page == "gallery":
             "Phase V": "https://gemini.google.com/share/a627741c67f6",
             "Phase VI": "https://gemini.google.com/share/ccbabe563dd0",
             "Phase VII": "https://gemini.google.com/share/f934d96cd185",
-            "Phase VIII": "https://gemini.google.com/share/fa058a3d73f7",
-            "Final": "https://gemini.google.com/share/ef6f607ddf18"
+            "Phase VIII": "https://gemini.google.com/share/fa058a3d73f7"
         }
 
-        phases = [
-            ("Vault", "The Us Vault", "#FFD700", "us_cover.png"), 
+        phases = [ 
             ("Phase I", "The Bonfire", "#FF6B6B", "bonfire.png"),
             ("Phase II", "The Great Pause", "#4ECDC4", "lockdown.png"),
             ("Phase III", "The Great Leap", "#F7D794", "leap.png"),
@@ -183,8 +323,7 @@ elif st.session_state.page == "gallery":
         for i, (p_id, title, color, img_file) in enumerate(phases):
             with cols[i % 3]:
                 img_b64 = get_image_base64(f"images/{img_file}")
-                
-                # We use a single div structure for EVERYTHING to ensure alignment
+                # Unified Card HTML
                 card_html = f"""
                     <div style="background:rgba(255,255,255,0.95); border-radius:20px; overflow:hidden; border-top:10px solid {color}; text-align:center; color:#2c3e50; height: 350px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
                         <img src="data:image/png;base64,{img_b64}" style="width:100%; height:200px; object-fit:cover;">
@@ -193,21 +332,24 @@ elif st.session_state.page == "gallery":
                             <h3 style="margin:5px 0; color:#2c3e50;">{title}</h3>
                 """
 
-                if p_id == "Vault":
-                    # For the Vault, the card contains an internal button
+                if p_id == "Final":
                     st.markdown(card_html + "</div></div>", unsafe_allow_html=True)
-                    if st.button(f"🔓 Open {title}", key="v_btn_final", use_container_width=True):
-                        st.session_state.viewing_us_photos = True; st.balloons(); st.rerun()
+                    if st.button("💌 Open Letter", key="final_btn", use_container_width=True):
+                        st.session_state.viewing_letter = True
+                        st.rerun()
                 else:
-                    # For Phases, the whole card is a link
-                    link = phase_links.get(p_id, GEMINI_LINK)
-                    full_card = f"""
-                        <a href="{link}" target="_blank" style="text-decoration:none;">
-                            {card_html}
-                            <p style="font-size:0.8rem; color:#666;">📖 Read Our Story</p>
-                        </div></a>
-                    """
-                    st.markdown(full_card, unsafe_allow_html=True)
+                    link = phase_links.get(p_id, "#")
+                    st.markdown(f'<a href="{link}" target="_blank" style="text-decoration:none;">{card_html}<p style="font-size:0.8rem; color:#666;">📖 Read Story</p></div></a>', unsafe_allow_html=True)
 
-    if st.button("🔙 Back Home"):
-        st.session_state.authenticated = False; st.session_state.page = "landing"; st.rerun()
+        st.write("---")
+        _, center_btn, _ = st.columns([1, 2, 1])
+        with center_btn:
+            if st.button("🔓 UNLOCK THE US VAULT (PRIVATE GALLERY)", use_container_width=True):
+                st.session_state.viewing_us_photos = True
+                st.balloons()
+                st.rerun()
+
+    if st.button("🔙 Logout"):
+        st.session_state.authenticated = False
+        st.session_state.page = "landing"
+        st.rerun()
