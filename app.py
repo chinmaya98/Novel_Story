@@ -166,7 +166,7 @@ elif st.session_state.page == "login":
             u = st.text_input("Username")
             p = st.text_input("Secret Key", type="password")
             if st.form_submit_button("Access Vault"):
-                if u.lower() == "Gautam" and p == "Potti2018":
+                if u.lower() == "gautam" and p == "Potti2018":
                     st.session_state.authenticated = True
                     st.session_state.page = "gallery"
                     st.rerun()
@@ -353,3 +353,4 @@ elif st.session_state.page == "gallery":
         st.session_state.authenticated = False
         st.session_state.page = "landing"
         st.rerun()
+
