@@ -3,6 +3,8 @@ import base64
 import random
 import requests
 import os
+import qrcode
+from io import BytesIO
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Happy Birthday", page_icon="🎁", layout="wide")
@@ -35,6 +37,17 @@ def get_image_base64(path):
             return base64.b64encode(response.content).decode()
     except: return None
     return None
+
+# QR Code Generate
+def generate_qr(url):
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = BytesIO()
+    img.save(buf)
+    return buf.getvalue()
+
 
 # --- 3. DYNAMIC STYLING ---
 def apply_custom_styles(img_filename):
@@ -73,6 +86,13 @@ if st.session_state.page == "landing":
     with col1: st.metric("Years", "7+")
     with col2: st.metric("Continents", "2")
     with col3: st.metric("Cities Together", "12+")
+        
+    st.write("---")
+    with st.expander("📱 Share the Journey (QR Code)"):
+        app_url = "https://happybirthdaygautam.streamlit.app/"
+        qr_bytes = generate_qr(app_url)
+        st.image(qr_bytes, caption="Scan to open on your phone!", width=250)
+        
     st.write("##")
     _, mid, _ = st.columns([1, 2, 1])
     with mid:
@@ -285,6 +305,7 @@ elif st.session_state.page == "gallery":
 
     if st.button("🔙 Logout", key="global_logout_btn"):
         st.session_state.authenticated = False; st.session_state.page = "landing"; st.rerun()
+
 
 
 
