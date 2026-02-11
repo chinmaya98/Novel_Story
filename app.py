@@ -175,7 +175,7 @@ elif st.session_state.page == "gallery":
         # IMPORTANT: We do NOT use an f-string here to avoid brace errors
         st.markdown(r"""
         <div class="letter-box">
-            <p style="text-align: right; font-weight: bold; color: #2c3e50;">January 3, 2026</p>
+            <p style="text-align: right; font-weight: bold; color: #2c3e50;">February 15, 2026</p>
             <h1 style="text-align: center; color: #FF6B6B;">A Letter to the Man Who Became My Rhythm</h1>
             <h2 style="color: #FF6B6B;">Gautam,</h2>
             <p style="color: #2c3e50;">I am sitting here with my coffee, watching the light change, and for the first time in eight years, I am trying to imagine a world where you aren’t my first thought. It’s been 2,922 days since that bonfire in the hills, and somehow, you’ve managed to become the very air I breathe without me even noticing.</p>
@@ -238,7 +238,7 @@ elif st.session_state.page == "gallery":
 
     # --- MAIN JOURNEY VAULT ---
     else:
-        st.markdown("<h1 style='text-align:center;'>Our Journey Vault</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align:center;'>❤️ Our Journey Vault ❤️</h1>", unsafe_allow_html=True)
         phase_links = {
             "Phase I": "https://gemini.google.com/share/a836962563ae",
             "Phase II": "https://gemini.google.com/share/527cb5d2d1ab",
@@ -286,6 +286,7 @@ elif st.session_state.page == "gallery":
 
     if st.button("🔙 Logout", key="global_logout_btn"):
         st.session_state.authenticated = False; st.session_state.page = "landing"; st.rerun()
+
 
 
 
