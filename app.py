@@ -5,7 +5,7 @@ import requests
 import os
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="The Geometry of Us", page_icon="💖", layout="wide")
+st.set_page_config(page_title="Happy Birthday", page_icon="🎁", layout="wide")
 
 # --- GITHUB IMAGE SETTINGS ---
 GITHUB_BASE_URL = "https://raw.githubusercontent.com/chinmaya98/Novel_Story/main/"
@@ -285,6 +285,7 @@ elif st.session_state.page == "gallery":
 
     if st.button("🔙 Logout", key="global_logout_btn"):
         st.session_state.authenticated = False; st.session_state.page = "landing"; st.rerun()
+
 
 
 
