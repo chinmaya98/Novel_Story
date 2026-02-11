@@ -66,7 +66,7 @@ def apply_custom_styles(img_filename):
 
 # --- PAGE 1: LANDING ENTRANCE ---
 if st.session_state.page == "landing":
-    apply_custom_styles("map.png")
+    apply_custom_styles("backcover.png")
     st.balloons()
     st.markdown("<h1 style='font-family:\"Dancing Script\", cursive; font-size: 6rem; text-align: center;'>Happy Birthday, Gautam!</h1>", unsafe_allow_html=True)
     _, col1, col2, col3, _ = st.columns([1, 2, 2, 2, 1])
@@ -105,7 +105,7 @@ elif st.session_state.page == "photo_categories":
 
 # --- PAGE 3: LOGIN ---
 elif st.session_state.page == "login":
-    apply_custom_styles("backcover.png")
+    apply_custom_styles("map.png")
     st.markdown("<h2 style='text-align: center; margin-top: 100px;'>🔒 Access Protected</h2>", unsafe_allow_html=True)
     _, col, _ = st.columns([1,1,1])
     with col:
@@ -113,7 +113,7 @@ elif st.session_state.page == "login":
             u = st.text_input("Username")
             p = st.text_input("Secret Key", type="password")
             if st.form_submit_button("Access Vault"):
-                if u.lower() == "gautam" and p == "Potti2018":
+                if u.lower() == "Gautam" and p == "Potti2018":
                     st.session_state.authenticated = True
                     st.session_state.page = "gallery"; st.rerun()
                 else: st.error("Incorrect Key.")
@@ -285,3 +285,4 @@ elif st.session_state.page == "gallery":
 
     if st.button("🔙 Logout", key="global_logout_btn"):
         st.session_state.authenticated = False; st.session_state.page = "landing"; st.rerun()
+
