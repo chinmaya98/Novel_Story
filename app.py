@@ -114,7 +114,7 @@ elif st.session_state.page == "login":
             u = st.text_input("Username")
             p = st.text_input("Secret Key", type="password")
             if st.form_submit_button("Access Vault"):
-                if u.lower() == "gautam" and p == "Potti2018":
+                if u.lower() == "Gau" and p == "Potti2018":
                     st.session_state.authenticated = True
                     st.session_state.page = "gallery"; st.rerun()
                 else: st.error("Incorrect Key.")
@@ -286,6 +286,7 @@ elif st.session_state.page == "gallery":
 
     if st.button("🔙 Logout", key="global_logout_btn"):
         st.session_state.authenticated = False; st.session_state.page = "landing"; st.rerun()
+
 
 
 
