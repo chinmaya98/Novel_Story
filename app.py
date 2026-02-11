@@ -261,6 +261,32 @@ elif st.session_state.page == "gallery":
             st.write("##")
             if st.button("➡️ Next", key="n_us_btn"): st.session_state.photo_index = (curr_idx + 1) % 18; st.rerun()
 
+        # 3. ADDED: Full Collection Grid
+        st.write("---")
+        st.markdown("<h2 style='text-align:center;'>📸 The Full Collection</h2>", unsafe_allow_html=True)
+        
+        # Checking extensions for 18 photos to ensure they all load
+        grid = st.columns(3)
+        extensions = [".jpg", ".jpeg", ".png", ".JPG"]
+        
+        for i in range(1, 19):
+            img_grid_b64 = None
+            for ext in extensions:
+                photo_name = f"us_{i}{ext}"
+                img_grid_b64 = get_image_base64(f"gallery/{photo_name}")
+                if img_grid_b64:
+                    break
+            
+            with grid[(i-1) % 3]:
+                if img_grid_b64:
+                    st.markdown(f'''
+                        <div class="photo-card" style="margin-bottom:20px;">
+                            <img src="data:image/jpeg;base64,{img_grid_b64}" 
+                                 style="width:100%; height:250px; object-fit:cover;">
+                        </div>
+                    ''', unsafe_allow_html=True)
+
+                    
     # --- MAIN JOURNEY VAULT ---
     else:
         st.markdown("<h1 style='text-align:center;'>❤️ Our Journey Vault ❤️</h1>", unsafe_allow_html=True)
