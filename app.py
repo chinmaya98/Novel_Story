@@ -239,14 +239,14 @@ elif st.session_state.page == "gallery":
     else:
         st.markdown("<h1 style='text-align:center;'>Our Journey Vault</h1>", unsafe_allow_html=True)
         phase_links = {
-            "Phase I": "https://gemini.google.com/share/5e0867acc937",
-            "Phase II": "https://gemini.google.com/share/c87b69424443",
-            "Phase III": "https://gemini.google.com/share/2d6a70e7cfb7",
-            "Phase IV": "https://gemini.google.com/share/876e191d3f58",
-            "Phase V": "https://gemini.google.com/share/a627741c67f6",
-            "Phase VI": "https://gemini.google.com/share/ccbabe563dd0",
-            "Phase VII": "https://gemini.google.com/share/f934d96cd185",
-            "Phase VIII": "https://gemini.google.com/share/fa058a3d73f7"
+            "Phase I": "https://gemini.google.com/share/a836962563ae",
+            "Phase II": "https://gemini.google.com/share/527cb5d2d1ab",
+            "Phase III": "https://gemini.google.com/share/b82ddc6db85b",
+            "Phase IV": "https://gemini.google.com/share/55186d27a858",
+            "Phase V": "https://gemini.google.com/share/70f2963dcb79",
+            "Phase VI": "https://gemini.google.com/share/6871d47d1f6a",
+            "Phase VII": "https://gemini.google.com/share/9d8bec2afd20",
+            "Phase VIII": "https://gemini.google.com/share/a847fa96defd"
         }
         phases = [ 
             ("Phase I", "The Bonfire", "#FF6B6B", "bonfire.png"),
@@ -285,5 +285,6 @@ elif st.session_state.page == "gallery":
 
     if st.button("🔙 Logout", key="global_logout_btn"):
         st.session_state.authenticated = False; st.session_state.page = "landing"; st.rerun()
+
 
 
