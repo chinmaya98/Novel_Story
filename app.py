@@ -132,17 +132,19 @@ elif st.session_state.page == "gallery":
         if st.button("🔙 Back to Journey Vault", key="final_letter_back"): 
             st.session_state.viewing_letter = False
             st.rerun()
+        
+        # 2. Trigger Balloons and Custom Heart Rain
+        st.balloons()
 
-        # 2. Inject CSS separately for better reliability
+        # Inject CSS for styling and Heart Animation
         st.markdown("""
             <style>
             @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@400;700&display=swap');
             
-            /* This targeting ensures we override Streamlit's default padding */
             .main .block-container {
                 padding-top: 2rem !important;
             }
-
+            
             .letter-box {
                 background-color: #fffdf5 !important;
                 padding: 50px !important;
@@ -154,12 +156,14 @@ elif st.session_state.page == "gallery":
                 color: #2c3e50 !important;
                 font-family: 'Playfair Display', serif !important;
                 line-height: 1.8 !important;
+                position: relative;
+                z-index: 1;
             }
             
             .letter-box h1, .letter-box h2 {
                 font-family: 'Dancing Script', cursive !important;
                 color: #FF6B6B !important;
-                text-shadow: none !important; /* Removes the global shadow for the letter */
+                text-shadow: none !important;
             }
             
             .letter-box p {
@@ -168,32 +172,53 @@ elif st.session_state.page == "gallery":
                 margin-bottom: 20px !important;
                 font-size: 1.1rem !important;
             }
+
+            /* --- Heart Animation --- */
+            @keyframes heartFall {
+                0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+            }
+
+            .heart-particle {
+                position: fixed;
+                top: -10%;
+                color: #FF6B6B;
+                font-size: 24px;
+                user-select: none;
+                z-index: 1000;
+                animation: heartFall 6s linear infinite;
+            }
             </style>
+
+            <div class="heart-particle" style="left:10%; animation-delay:0s;">❤️</div>
+            <div class="heart-particle" style="left:25%; animation-delay:2s;">💖</div>
+            <div class="heart-particle" style="left:40%; animation-delay:1s;">💕</div>
+            <div class="heart-particle" style="left:60%; animation-delay:3s;">❤️</div>
+            <div class="heart-particle" style="left:75%; animation-delay:1.5s;">💗</div>
+            <div class="heart-particle" style="left:90%; animation-delay:4s;">💖</div>
         """, unsafe_allow_html=True)
 
-        # 3. Create the Letter as a single clean string
-        # IMPORTANT: We do NOT use an f-string here to avoid brace errors
+        # 3. Create the Letter Content
         st.markdown(r"""
         <div class="letter-box">
             <p style="text-align: right; font-weight: bold; color: #2c3e50;">February 15, 2026</p>
             <h1 style="text-align: center; color: #FF6B6B;">A Letter to the Man Who Became My Rhythm</h1>
             <h2 style="color: #FF6B6B;">Gautam,</h2>
-            <p style="color: #2c3e50;">I am sitting here with my coffee, watching the light change, and for the first time in eight years, I am trying to imagine a world where you aren’t my first thought. It’s been 2,922 days since that bonfire in the hills, and somehow, you’ve managed to become the very air I breathe without me even noticing.</p>
-            <p style="color: #2c3e50;">I wanted to tell you this today, but the words always get stuck. I want to tell you that I don’t just "value" our friendship—I am built out of it.</p>
-            <p style="color: #2c3e50;">Every version of Tara that exists today was crafted alongside you. Tara who isn’t afraid of the deep water? You did that. The Tara who moved across the globe with two suitcases and a heart full of fear? She only did it because she knew you were on the other side of that flight.</p>
-            <p style="color: #2c3e50;">I’ve spent so long worrying about the "competition"—feeling like I was the third wheel between you and Siri, or wondering if I was just the girl who fills the gaps. But looking back at the way you cared for me during my worst days... I realize now that the only person I was ever in competition with was my own fear.</p>
-            <p style="color: #2c3e50;"><strong>But here is the truth that terrifies me:</strong></p>
-            <p style="color: #2c3e50;">We call this "friendship," and we wear that word like a safety vest. But what do I do when my "best friend" is also my entire routine? What do I do when my inspiration to wake up, to work, to struggle through this new country, is tied to a man I’m supposed to eventually "move on" from?</p>
-            <p style="color: #2c3e50;">I’m scared, Abhi. I’m scared that by staying "just friends," I am agreeing to a future where one day, I won't be the one cleaning up after your party.</p>
-            <p style="color: #2c3e50;">I can be your supporter. I can be your rock. I can be the person who knows your coffee order and your mother’s favorite cake by heart. But deep down, I don't know how to rewrite my story without you as the lead character.</p>
-            <p style="color: #2c3e50;">Thank you for being my constant in a world of chaos. Even if I don't know where we are going, I’m glad it was you who taught me how to walk through the mist.</p>
+            <p>I am sitting here with my coffee, watching the light change, and for the first time in eight years, I am trying to imagine a world where you aren’t my first thought. It’s been 2,922 days since that bonfire in the hills, and somehow, you’ve managed to become the very air I breathe without me even noticing.</p>
+            <p>I wanted to tell you this today, but the words always get stuck. I want to tell you that I don’t just "value" our friendship—I am built out of it.</p>
+            <p>Every version of Tara that exists today was crafted alongside you. Tara who isn’t afraid of the deep water? You did that. The Tara who moved across the globe with two suitcases and a heart full of fear? She only did it because she knew you were on the other side of that flight.</p>
+            <p>I’ve spent so long worrying about the "competition"—feeling like I was the third wheel between you and Siri, or wondering if I was just the girl who fills the gaps. But looking back at the way you cared for me during my worst days... I realize now that the only person I was ever in competition with was my own fear.</p>
+            <p><strong>But here is the truth that terrifies me:</strong></p>
+            <p>We call this "friendship," and we wear that word like a safety vest. But what do I do when my "best friend" is also my entire routine? What do I do when my inspiration to wake up, to work, to struggle through this new country, is tied to a man I’m supposed to eventually "move on" from?</p>
+            <p>I’m scared, Abhi. I’m scared that by staying "just friends," I am agreeing to a future where one day, I won't be the one cleaning up after your party.</p>
+            <p>I can be your supporter. I can be your rock. I can be the person who knows your coffee order and your mother’s favorite cake by heart. But deep down, I don't know how to rewrite my story without you as the lead character.</p>
+            <p>Thank you for being my constant in a world of chaos. Even if I don't know where we are going, I’m glad it was you who taught me how to walk through the mist.</p>
             <div style="text-align: right; color: #FF6B6B; font-weight: bold; font-size: 1.5rem; margin-top: 30px;">
                 Always yours, in every way that matters,<br>
                 Potti
             </div>
         </div>
         """, unsafe_allow_html=True)
-        st.snow()
 
     # --- SUB-PAGE: PRIVATE MOMENTS (SLIDESHOW) ---
     elif st.session_state.get('viewing_us_photos', False):
@@ -286,12 +311,3 @@ elif st.session_state.page == "gallery":
 
     if st.button("🔙 Logout", key="global_logout_btn"):
         st.session_state.authenticated = False; st.session_state.page = "landing"; st.rerun()
-
-
-
-
-
-
-
-
-
